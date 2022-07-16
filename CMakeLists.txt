@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_CXX_STANDARD 11)
+
 project(vineyard LANGUAGES C CXX VERSION ${VINEYARD_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_EXTERNAL_REDIS_LIBS "Build with external redis-plus-plus library rather than the submodule one" ON)
+option(USE_EXTERNAL_HIREDIS_LIBS "Build with external redis-plus-plus library rather than the submodule one" ON)
 
 macro(add_subdirectory_shared directory)
     set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
@@ -35,7 +38,7 @@ macro(find_hiredis)
     else()
         include("cmake/BuildHiredis.cmake")
     endif()
-endmacro(find_redis_plus_plus)
+endmacro(find_hiredis)
 
 # ToDo： 需要解决没有使用cmake安装hiredis的情况
 macro(find_redis_plus_plus)
@@ -63,4 +66,4 @@ find_redis_plus_plus()
 add_executable(main main.cc)
 
 target_link_libraries(main ${HIREDIS_LIBRARIES} ${REDIS_PLUS_PLUS_LIBRARIES})
-target_include_directories(main ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})
+target_include_directories(main PRIVATE ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})
