@@ -13,9 +13,11 @@
 # limitations under the License.
 
 # build hiredis
+set(DISABLE_TESTS ON CACHE BOOL "Build tests.")
 add_subdirectory_static(thirdparty/hiredis)
 
 target_include_directories(hiredis PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/thirdparty>)
+# 这就是在指定find_package()的路径
 set(hiredis_DIR "${PROJECT_BINARY_DIR}/thirdparty/hiredis")
 set(hiredis_INCLUDEDIR "${PROJECT_SOURCE_DIR}/thirdparty")
 
