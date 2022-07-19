@@ -13,7 +13,8 @@
 # limitations under the License.
 
 # build hiredis
-add_subdirectory_static(thirdparty/hiredis)
+set(DISABLE_TESTS ON CACHE BOOL "Build tests.")
+add_subdirectory_static(thirdparty/hiredis EXCLUDE_FROM_ALL)
 
 target_include_directories(hiredis PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/thirdparty>)
 set(hiredis_DIR "${PROJECT_BINARY_DIR}/thirdparty/hiredis")
