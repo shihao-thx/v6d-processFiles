@@ -66,5 +66,5 @@ find_redis_plus_plus()
 
 add_executable(main main.cc)
 
-target_link_libraries(main ${HIREDIS_LIBRARIES} ${REDIS_PLUS_PLUS_LIBRARIES} libuv)
+target_link_libraries(main ${HIREDIS_LIBRARIES} ${REDIS_PLUS_PLUS_LIBRARIES} libuv boost_thread boost_system)
 target_include_directories(main PRIVATE ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})

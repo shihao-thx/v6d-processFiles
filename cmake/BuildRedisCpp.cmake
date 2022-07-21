@@ -16,7 +16,8 @@
 # maybe be used by dynamic lib
 set(REDIS_PLUS_PLUS_BUILD_TEST OFF CACHE BOOL "Build tests.")
 #set(REDIS_PLUS_PLUS_BUILD_SHARED OFF CACHE BOOL " Only build a static library.")
-set(REDIS_PLUS_PLUS_BUILD_ASYNC libuv CACHE STRING "Supports async interface")
+set(REDIS_PLUS_PLUS_BUILD_ASYNC libuv CACHE STRING "Support async interface")
+set(REDIS_PLUS_PLUS_ASYNC_FUTURE boost CACHE STRING "Use boost future")
 # 没有build静态库可能EXCLUDE_FROM_ALL的原因
 add_subdirectory_static(thirdparty/redis-plus-plus EXCLUDE_FROM_ALL)
 set(REDIS_PLUS_PLUS_LIBRARIES redis++)
