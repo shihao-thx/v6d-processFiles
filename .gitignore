@@ -1,0 +1,6 @@
+/boost
+/build/.cmake/
+/build/CMakeFiles/
+/build/*.txt
+/build/*.cmake
+/build/thirdparty
