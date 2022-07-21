@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/main.dir/main.cc.o  -o main  -Wl,-rpath,/home/hao/Desktop/v6d-processFiles/build/thirdparty/redis-plus-plus:/home/hao/Desktop/v6d-processFiles/build/thirdparty/hiredis thirdparty/redis-plus-plus/libredis++.so.1.3.5 thirdparty/hiredis/libhiredis.so.1.0.3-dev 
