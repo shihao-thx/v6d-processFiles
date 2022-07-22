@@ -3,6 +3,26 @@
 
 #include <string>
 
+// raise a std::runtime_error (inherits std::exception), don't FATAL
+#ifndef VINEYARD_CHECK_OK
+#define VINEYARD_CHECK_OK(status)                                              \
+  do {                                                                         \
+    auto _ret = (status);                                                      \
+    if (!_ret.ok()) {                                                          \
+      std::clog << "[error] Check failed: " << _ret.ToString() << " in \""     \
+                << #status << "\""                                             \
+                << ", in function " << VINEYARD_TO_STRING(__PRETTY_FUNCTION__) \
+                << ", file " << __FILE__ << ", line "                          \
+                << VINEYARD_TO_STRING(__LINE__) << std::endl;                  \
+      throw std::runtime_error(                                                \
+          "Check failed: " + _ret.ToString() +                                 \
+          " in \"" #status "\", in function " +                                \
+          std::string(VINEYARD_TO_STRING(__PRETTY_FUNCTION__)) + ", file " +   \
+          __FILE__ + ", line " + VINEYARD_TO_STRING(__LINE__));                \
+    }                                                                          \
+  } while (0)
+#endif  // VINEYARD_CHECK_OK
+
 namespace vineyard {
 
 enum class StatusCode : unsigned char {

@@ -1,4 +1,10 @@
 #include "server/server/vineyard_runner.h"
+#include "server/server/vineyard_server.h"
+
+#include "boost/bind.hpp"
+
+#include "common/util/status.h"
+
 
 namespace vineyard {
 
@@ -30,7 +36,7 @@ Status VineyardRunner::Serve() {
   auto root_vs = std::make_shared<VineyardServer>( 
       spec_template_, RootSessionID(), shared_from_this(), context_,
       meta_context_, [](Status const& s, std::string const&) { return s; });
-  sessions_.emplace(RootSessionID(), root_vs);
+  //sessions_.emplace(RootSessionID(), root_vs);
 
   // start a root session
   VINEYARD_CHECK_OK(root_vs->Serve("Normal"));

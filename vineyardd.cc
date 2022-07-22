@@ -8,7 +8,7 @@
 static std::shared_ptr<vineyard::VineyardRunner> server_runner_ = nullptr;
 
 int main() {
-    std::string spec = "redis"
+    std::string spec = "redis";
     server_runner_ = vineyard::VineyardRunner::Get(spec); 
     auto status = server_runner_->Serve();
     return 0;

@@ -1,4 +1,5 @@
 /boost
+/nlohmann
 /build/.cmake/
 /build/CMakeFiles/
 /build/*.txt
