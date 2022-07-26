@@ -1,6 +1,4 @@
-/boost
-/build/.cmake/
-/build/CMakeFiles/
-/build/*.txt
-/build/*.cmake
-/build/thirdparty
+/build
+older_main.cc
+script.lua
+test_stream.cc

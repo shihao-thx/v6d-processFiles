@@ -14,9 +14,14 @@
 
 # build hiredis
 set(DISABLE_TESTS ON CACHE BOOL "Build tests.")
+#<<<<<<< HEAD
+#add_subdirectory_static(thirdparty/hiredis)
+#=======
 add_subdirectory_static(thirdparty/hiredis EXCLUDE_FROM_ALL)
+#>>>>>>> 43eba656b5b93fa9b1840d392b46927ac1ca14a5
 
 target_include_directories(hiredis PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/thirdparty>)
+# 这就是在指定find_package()的路径
 set(hiredis_DIR "${PROJECT_BINARY_DIR}/thirdparty/hiredis")
 set(hiredis_INCLUDEDIR "${PROJECT_SOURCE_DIR}/thirdparty")
 
