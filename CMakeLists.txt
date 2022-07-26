@@ -66,5 +66,16 @@ find_redis_plus_plus()
 
 add_executable(main main.cc)
 
-target_link_libraries(main ${HIREDIS_LIBRARIES} ${REDIS_PLUS_PLUS_LIBRARIES} libuv)
-target_include_directories(main PRIVATE ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})
+find_library(BOOST_THREAD_LIBRARIES boost_thread)
+find_library(BOOST_SYSTEM_LIBRARIES boost_system)
+find_library(UV_LIBRARIES uv)
+if(BOOST_THREAD_LIBRARIES AND BOOST_SYSTEM_LIBRARIES AND UV_LIBRARIES)
+	message(STATUS "\n from shihao: all found")
+	message(STATUS "${BOOST_THREAD_LIBRARIES}")
+	message(STATUS "${BOOST_SYSTEM_LIBRARIES}")
+	message(STATUS "${UV_LIBRARIES}")
+endif()
+target_link_libraries(main ${HIREDIS_LIBRARIES} ${REDIS_PLUS_PLUS_LIBRARIES} ${BOOST_THREAD_LIBRARIES} ${BOOST_SYSTEM_LIBRARIES} ${UV_LIBRARIES} pthread)
+#target_include_directories(main PRIVATE ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})
+
+target_include_directories(main PUBLIC ${HIREDIS_INCLUDE_DIR} ${REDIS_PLUS_PLUS_INCLUDE_DIR})
