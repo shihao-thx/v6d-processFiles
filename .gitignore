@@ -3,3 +3,5 @@
 older_main.cc
 script.lua
 test_stream.cc
+for.cc
+*.out
