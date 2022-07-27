@@ -84,7 +84,7 @@ int main() {
 	 	iosv->post(boost::bind(&watch, ref(async_redis), msg));
      });
 
-	sub.subscribe("channel");
+	sub.subscribe("opts");
 
 	boost::thread_group threads;
     threads.create_thread(boost::bind(&workThread, iosv));

@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 project(vineyard LANGUAGES C CXX VERSION ${VINEYARD_VERSION})
 
+set(BUILDFILE main.cc CACHE STRING "Which file to build")
+
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_EXTERNAL_REDIS_LIBS "Build with external redis-plus-plus library rather than the submodule one" ON)
 option(USE_EXTERNAL_HIREDIS_LIBS "Build with external redis-plus-plus library rather than the submodule one" ON)
@@ -64,7 +66,7 @@ endmacro(find_redis_plus_plus)
 find_hiredis()
 find_redis_plus_plus()
 
-add_executable(main main.cc)
+add_executable(main ${BUILDFILE})
 
 find_library(BOOST_THREAD_LIBRARIES boost_thread)
 find_library(BOOST_SYSTEM_LIBRARIES boost_system)

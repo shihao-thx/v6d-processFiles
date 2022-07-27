@@ -1,4 +1,5 @@
 /build
+/build2
 older_main.cc
 script.lua
 test_stream.cc
