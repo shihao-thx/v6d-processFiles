@@ -76,6 +76,10 @@ int main() {
 	commitUpdates(async_redis, 1);
 	commitUpdates(async_redis, 4);
 
+	cin.get();
+
+	commitUpdates(async_redis, 7);
+	commitUpdates(async_redis, 10);
 
 	cin.get();
 
