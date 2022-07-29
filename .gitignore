@@ -1,7 +1,7 @@
 /build
-/build2
+/build_pub
 /build_request
-/comm_build
+/build_comm
 older_main.cc
 script.lua
 test_stream.cc

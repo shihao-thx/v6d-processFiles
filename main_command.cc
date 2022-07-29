@@ -26,12 +26,28 @@ void callback1(AsyncRedis& async_redis) {
     		cout << endl;
 		});
 }
+
 void callback2(AsyncRedis& async_redis) {	
 	auto resp = async_redis.command<std::vector<std::string>>("keys", "*"); 
 	for(auto const& item : resp.get()) 
 		cout << item << " ";
 	cout << endl;
 	sleep(10);
+}
+
+void callback3(AsyncRedis& async_redis) {
+	vector<string> keys = { "key43", "key75", "key61", "key28" };
+//	for(auto const& item : keys) cout << item << " ";
+	/*async_redis.command<std::vector<OptionalString>>("mget", keys.begin(), keys.end(),
+            [](Future<std::vector<std::string>> &&resp) {
+              for(auto const& item : resp.get())
+			  	cout << item << endl;
+              });*/
+	 async_redis.command<std::vector<std::string>>("mget", keys.begin(), keys.end(),
+              [](Future<std::vector<std::string>> &&resp) {
+                for(auto const& item : resp.get())
+                  cout << item << endl;
+                });
 }
 int main() {
    	//auto iosv =std::make_shared<io_service>();
@@ -51,6 +67,8 @@ int main() {
     if(ping_res.get() == "PONG") {
         cout << "hello redis" << endl;
     }
+
+	/*
 	long n=0;
 	clock_t start,finish;
 	
@@ -58,18 +76,21 @@ int main() {
 	callback1(async_redis);
 	finish=clock();
     cout<< "callback1 consume: " << (finish-start)/CLOCKS_PER_SEC << endl;
+	*/
 
-	cin.get();
+	//cin.get();
 	//auto const& vec = resp.get();
 
 	//for(auto const& item : vec) {
 	//	cout << item << " ";
 	//}
 	//cout << endl;
-	start=clock();
-    callback2(async_redis);
-    finish=clock();
-    cout<< "callback2 consume: " << (finish-start)/CLOCKS_PER_SEC << endl;
+	//start=clock();
+    //callback2(async_redis);
+    //finish=clock();
+    //cout<< "callback2 consume: " << (finish-start)/CLOCKS_PER_SEC << endl;
+
+	callback3(async_redis);
 
  	cin.get();
 

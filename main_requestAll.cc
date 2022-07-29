@@ -16,8 +16,16 @@ using namespace sw::redis;
 using namespace std;
 using namespace boost::asio;
 
-/* cannot put in class. why? maybe accroding to class initialized */
-struct kv_t {
+/* free(): invalid pointer
+Aborted (core dumped)
+Why?
+*/
+
+
+/* cannot put in class. why? maybe accroding to class initialized No!!!*/
+// 类中符号编译解释顺序需要好好回顾下
+// 数据的实例化顺序一定是先于函数的，类中的类先初始化？
+/*struct kv_t {
 	std::string key;
 	std::string value;
 	unsigned rev;
@@ -30,9 +38,23 @@ struct op_t {
 		 return op_t{.op = op_type_t::kPut,
 		  .kv = kv_t{.key = key, .value = value, .rev = rev}};
 	 }
-};
+};*/
 class RedisMetaService : public std::enable_shared_from_this<RedisMetaService> {
 public:
+	struct kv_t {
+		std::string key;
+		std::string value;
+		unsigned rev;
+	};
+	struct op_t {
+		enum op_type_t : unsigned { kPut = 0, kDel = 1 } op;
+		kv_t kv;
+		static op_t Put(std::string const& key, std::string const& value,
+			unsigned const rev) {
+		  return op_t{.op = op_type_t::kPut,
+		  .kv = kv_t{.key = key, .value = value, .rev = rev}};
+	 	}
+	};
 	/* redis 不能构造redis_ 改为引用*/
 	RedisMetaService(std::unique_ptr<AsyncRedis>& redis, std::unique_ptr<AsyncRedis>& redis2) 
 		: redis_(redis), sync_redis_(redis2), worker(meta_context_) {}
@@ -51,22 +73,35 @@ void RedisMetaService::requestAll(function<void(std::vector<op_t> const&, unsign
 	redis_->command<std::vector<std::string>>("keys", "*", 
       [self, callback](Future<std::vector<std::string>> &&resp) {
         auto const& vec = resp.get();
-        std::vector<op_t> ops(vec.size());
+        std::vector<std::string> keys(vec.size());
         for(int i = 0; i < vec.size(); i++) {
           if (!boost::algorithm::starts_with(vec[i],
                                           self->prefix_)) {
             // ignore garbage values
             continue;
           }
-          std::string op_key = boost::algorithm::erase_head_copy(
-            vec[i], self->prefix_.size());
-          auto op = op_t::Put(
-            op_key, *(self->sync_redis_->get(vec[i]).get()), 0);
-          ops.emplace_back(op);
-        }
-        self->GetMetaContext().post(
-            boost::bind(callback, ops, stoi(*(self->sync_redis_->get("redis_revision").get()))));
-    });	
+          keys.emplace_back(vec[i]);
+		}
+		self->redis_->command<std::vector<std::string>>("mget", keys.begin(), keys.end(),
+		  [self, &keys, callback](Future<std::vector<std::string>> &&resp) {
+			auto const& vals = resp.get();
+			std::string op_key;
+			std::vector<op_t> ops(vals.size());
+			// collect kvs
+			for(int i=0; i<keys.size(); i++) {
+                op_key = boost::algorithm::erase_head_copy(
+                keys[i], self->prefix_.size());
+			    ops.emplace_back(RedisMetaService::op_t::Put(
+              	  op_key, vals[i], 0));
+		    }
+		    self->redis_->get("redis_revision", 
+		      [self, &ops, callback](Future<OptionalString> &&resp) {
+			    auto val = resp.get();
+           		 self->GetMetaContext().post(
+              		boost::bind(callback, ops, stoi(*val)));
+	         });
+		 });
+     });	
 }
 
 void workThread(io_service& iosv) {
@@ -120,7 +155,7 @@ int main() {
 
 	cout << "is_ok" << endl;
 
-	redis_ptr->requestAll([](vector<op_t> const& ops, unsigned rev){
+	redis_ptr->requestAll([](vector<RedisMetaService::op_t> const& ops, unsigned rev){
 		for(auto const& item : ops) {
 			cout << item.kv.key << " " << item.kv.value << endl;;
 		}
