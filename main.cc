@@ -23,7 +23,7 @@ void workThread(shared_ptr<io_service> iosv) {
 void watch(AsyncRedis& async_redis, string rev) {
 	cout << "in watch " << "rev: " << rev << endl;
 	//vector<string> keys;
-	auto resp = async_redis.lrange<std::vector<std::string>>("optlist", rev_, -1);
+	auto resp = async_redis.lrange<std::vector<std::string>>("optlist", rev_, stoi(rev)); // "-1“不行，而是“pub-1”
 	vector<string> puts;
 	vector<string> dels;
 	for(auto const& item : resp.get()) {
@@ -54,8 +54,9 @@ void watch(AsyncRedis& async_redis, string rev) {
 	}
 	cout << endl;
 
-	rev_ = stoi(rev); // 下次从下一个获取 
-	cout << "rev: " << rev_ << endl;
+	rev_ = stoi(rev); // 下次从下一个获取
+	rev_++;
+	//cout << "rev: " << rev_ << endl;
 }
 
 int main() {
@@ -82,6 +83,7 @@ int main() {
 	sub.on_message([iosv, &async_redis](std::string channel, std::string msg) {
      // Process message of MESSAGE type.
 	 	iosv->post(boost::bind(&watch, ref(async_redis), msg));
+		//watch(async_redis, msg);
      });
 
 	sub.subscribe("opts");

@@ -1,6 +1,7 @@
 /build
 /build_pub
 /build_request
+/build_watch
 /build_comm
 older_main.cc
 script.lua

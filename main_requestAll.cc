@@ -56,13 +56,13 @@ public:
 	 	}
 	};
 	/* redis 不能构造redis_ 改为引用*/
-	RedisMetaService(std::unique_ptr<AsyncRedis>& redis, std::unique_ptr<AsyncRedis>& redis2) 
-		: redis_(redis), sync_redis_(redis2), worker(meta_context_) {}
+	RedisMetaService(std::unique_ptr<AsyncRedis>& redis) 
+		: redis_(redis), worker(meta_context_) {}
 	void requestAll(function<void(std::vector<op_t> const&, unsigned)> callback);
 	inline io_service& GetMetaContext() { return meta_context_; }
 private:
 	std::unique_ptr<AsyncRedis>& redis_;
-	std::unique_ptr<AsyncRedis>& sync_redis_;
+//	std::unique_ptr<AsyncRedis>& sync_redis_;
 	io_service meta_context_;
 	io_service::work worker;
 	string prefix_ = "key";
@@ -73,8 +73,10 @@ void RedisMetaService::requestAll(function<void(std::vector<op_t> const&, unsign
 	redis_->command<std::vector<std::string>>("keys", "*", 
       [self, callback](Future<std::vector<std::string>> &&resp) {
         auto const& vec = resp.get();
-        std::vector<std::string> keys(vec.size());
-        for(int i = 0; i < vec.size(); i++) {
+        std::vector<std::string> keys;
+		keys.emplace_back("mget");
+		cout << vec.size() << endl; // 223
+        for(int i = 0; i <vec.size(); i++) {
           if (!boost::algorithm::starts_with(vec[i],
                                           self->prefix_)) {
             // ignore garbage values
@@ -82,20 +84,24 @@ void RedisMetaService::requestAll(function<void(std::vector<op_t> const&, unsign
           }
           keys.emplace_back(vec[i]);
 		}
-		self->redis_->command<std::vector<std::string>>("mget", keys.begin(), keys.end(),
-		  [self, &keys, callback](Future<std::vector<std::string>> &&resp) {
-			auto const& vals = resp.get();
+		/*for(auto const& item : keys) {
+			cout << item << " ";
+		}*/
+		self->redis_->command<std::vector<std::string>>(keys.begin(), keys.end(),
+		  [self, keys, callback](Future<std::vector<std::string>> &&resp) {
+			auto const& vals = resp.get(); 
 			std::string op_key;
 			std::vector<op_t> ops(vals.size());
 			// collect kvs
-			for(int i=0; i<keys.size(); i++) {
+			for(int i=1; i<keys.size(); i++) {
                 op_key = boost::algorithm::erase_head_copy(
                 keys[i], self->prefix_.size());
 			    ops.emplace_back(RedisMetaService::op_t::Put(
-              	  op_key, vals[i], 0));
+              	  op_key, vals[i-1], 0));
 		    }
+			cout << "can you see me 2" << endl;
 		    self->redis_->get("redis_revision", 
-		      [self, &ops, callback](Future<OptionalString> &&resp) {
+		      [self, ops, callback](Future<OptionalString> &&resp) {
 			    auto val = resp.get();
            		 self->GetMetaContext().post(
               		boost::bind(callback, ops, stoi(*val)));
@@ -124,17 +130,17 @@ int main() {
 
 	std::unique_ptr<AsyncRedis> redis_client;
 	redis_client.reset(new AsyncRedis(opts, pool_opts));
-
+/*
     ConnectionOptions opts2;
     opts2.host = "192.168.127.130";
     opts2.password = "root";
     opts2.port = 6379;
 
     ConnectionPoolOptions pool_opts2;
-    pool_opts2.size = 1;
+    pool_opts2.size = 3;
 
     auto async_redis = AsyncRedis(opts2, pool_opts2);
-
+*/
     Future<std::string> ping_res = redis_client->ping();
     if(ping_res.get() == "PONG") {
         cout << "hello redis" << endl;
@@ -144,11 +150,11 @@ int main() {
 	//std::unique_ptr<AsyncRedis> redis(new AsyncRedis(async_redis)); // 不行，会调用拷贝构造
 	// error: conversion from ‘sw::redis::AsyncRedis*’ to non-scalar type ‘std::unique_ptr<sw::redis::AsyncRedis>’ requested
 	//std::unique_ptr<AsyncRedis> redis = &async_redis; 
-	std::unique_ptr<AsyncRedis> redis(&async_redis); 
+	//std::unique_ptr<AsyncRedis> redis(&async_redis); 
 	
 	// 不能使用这种方式创建对象，否则会有terminate called after throwing an instance of 'std::bad_weak_ptr'   what():  bad_weak_ptr
 	//RedisMetaService meta_service(redis);
-	shared_ptr<RedisMetaService> redis_ptr = make_shared<RedisMetaService>(redis_client, redis);
+	shared_ptr<RedisMetaService> redis_ptr = make_shared<RedisMetaService>(redis_client);
 
 	boost::thread_group threads;
     threads.create_thread(boost::bind(&workThread, ref(redis_ptr->GetMetaContext())));

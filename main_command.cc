@@ -36,19 +36,85 @@ void callback2(AsyncRedis& async_redis) {
 }
 
 void callback3(AsyncRedis& async_redis) {
-	vector<string> keys = { "key43", "key75", "key61", "key28" };
+	//vector<string> keys = {"mget", "key43", "key75", "key61", "key28" };
+	vector<string> keys;
+	keys.emplace_back(string("mget"));
+	keys.emplace_back("key43");
+	keys.emplace_back("key75");
+	keys.emplace_back("key61");
+	keys.emplace_back("key28");
+	for(auto& item : keys) {
+		cout << item << " ";
+	}
+	cout << keys.size() <<endl;
 //	for(auto const& item : keys) cout << item << " ";
 	/*async_redis.command<std::vector<OptionalString>>("mget", keys.begin(), keys.end(),
             [](Future<std::vector<std::string>> &&resp) {
               for(auto const& item : resp.get())
 			  	cout << item << endl;
               });*/
-	 async_redis.command<std::vector<std::string>>("mget", keys.begin(), keys.end(),
+	 async_redis.command<std::vector<std::string>>(keys.begin(), keys.end(),
               [](Future<std::vector<std::string>> &&resp) {
                 for(auto const& item : resp.get())
                   cout << item << endl;
                 });
 }
+
+struct ops {
+	string key;
+    string val;
+    unsigned type;
+};
+
+void callback4(AsyncRedis& async_redis) {
+	int j=0;
+	string prefix_ = "vineyard/";
+      // produce kvs
+    vector<ops> changes;
+	for(int i=j; i<j+10; i++) {
+	  	ops op{.key="key_" + to_string(i), .val = "value_" + to_string(i), .type = i};
+	  	changes.emplace_back(op);
+         /*
+         changes.emplace_back(ops{.key=1, .val=i+1});
+         */
+	}
+
+	unordered_map<string, unsigned> opts;
+	vector<string> ks;
+	std::vector<string> kvs;
+	kvs.emplace_back("MSET");
+	for(auto& op : changes) {
+         //kvs.insert({prefix_ + op.key, op.val});
+		 kvs.emplace_back(prefix_ + op.key);
+         kvs.emplace_back(op.val);
+         opts.insert({op.key, 0}); // push
+		 ks.emplace_back(prefix_ + op.key);
+    }
+	
+	//kvs.emplace_hint(kvs.begin(), "mset", "");
+	//kvs.insert({"mset", ""});
+	/*async_redis.command<void>(kvs.begin(), kvs.end(),
+	  [](Future<void> &&resp) {
+	  	cout << "in callback" << endl;
+	  });*/
+	async_redis.del(ks.begin(), ks.end(),
+      [&async_redis,&opts](Future<long long> &&resp) {
+ 		async_redis.hset("opt1", opts.begin(), opts.end(),
+           [](Future<long long> &&resp) {
+			 cout << "in hset callback." << endl;
+		  });
+      });
+
+	  cin.get();
+	  /*
+	for (auto itr = kvs.begin(); itr != kvs.end(); itr++)
+        cout << itr->first << "\t"
+             << itr->second << endl;*/
+}
+
+/*void callback4(AsyncRedis& async_redis) {
+	
+}*/
 int main() {
    	//auto iosv =std::make_shared<io_service>();
     // 等待新的任务加入
@@ -90,8 +156,9 @@ int main() {
     //finish=clock();
     //cout<< "callback2 consume: " << (finish-start)/CLOCKS_PER_SEC << endl;
 
-	callback3(async_redis);
-
+	//callback3(async_redis);
+	callback4(async_redis);
+	//callback5(async_redis);
  	cin.get();
 
 	return 0;
